@@ -6,7 +6,6 @@ using Yungching.ViewModels;
 
 namespace Yungching.Controllers
 {
-    
     [ApiController]
     public class ProductController : ControllerBase
     {
@@ -29,11 +28,6 @@ namespace Yungching.Controllers
 
         [Route("api/Product/addNewProduct")]
         [HttpPost]
-        ///<summary>
-        ///新增商品
-        /// </summary>
-        /// <param name="addProduct">前端回傳的商品資訊</param>
-        /// <returns>回傳結果</returns>
         public Status addNewProduct(AddProduct addProduct) 
         {
             Status status = new Status();

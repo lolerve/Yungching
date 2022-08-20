@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Yungching.Models;
-
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddCors(p => p.AddPolicy("Web", build => { 
+build.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+}));
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -22,7 +23,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("Web");
 app.UseAuthorization();
 
 app.MapControllers();

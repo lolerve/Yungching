@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>永慶面試</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ"
+        crossorigin="anonymous"></script>
+    <style>
+        body {
+            background-color: rgba(0, 0, 0, 0.007);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5 d-flex justify-content-between align-items-center" id="vbody">
+        <div class="col-4">
+            <a href="/"
+                class="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
+                <svg class="bi me-2" width="30" height="24">
+                    <use xlink:href="#bootstrap"></use>
+                </svg>
+                <span class="fs-5 fw-semibold">產品列表</span>
+            </a>
+            <div class="list-group list-group-flush border-bottom scrollarea">
+                <a href="#" class="list-group-item list-group-item-action py-3 lh-tight" v-on:click="addButton">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                        <strong class="mb-1">新增產品</strong>
+                        <small class="text-muted">點擊新增</small>
+                    </div>
+                    <div class="col-10 mb-1 small"></div>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action py-3 lh-tight" v-for="item in productList" v-on:click="editButton">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                        <strong class="mb-1">{{item.productName}}</strong>
+                        <small class="text-muted">NT {{item.productPrice}}$</small>
+                    </div>
+                    <div class="col-10 mb-1 small">{{item.productDetail}}</div>
+                </a>
+            </div>
+        </div>
+        <div class="col-7">
+            <div class="col-6">
+                <label for="productName" class="form-label">商品名稱</label>
+                <input type="text" class="form-control" v-model="productName">
+            </div>
+            <div class="col-6">
+                <label for="productPrice" class="form-label">商品價格</label>
+                <input type="text" class="form-control" v-model="productPrice">
+            </div>
+            <div class="col-6">
+                <label for="productDetail" class="form-label">商品詳情</label>
+                <input type="text" class="form-control" v-model="productDetail">
+            </div>
+            <div class="offset-2 col-2">
+                <label for="AddButton" class="form-label"></label>
+                <input type="button" class="form-control" id="AddButton" value="新增" v-on:click="addNewProduct"
+                    v-if="addOrEdit">
+                <input type="button" class="form-control" id="AddButton" value="修改" v-on:click="addNewProduct" v-else>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    var app = new Vue({
+        data:
+        {
+            productList: [],
+            productName: "",
+            productPrice: "",
+            productDetail: "",
+            addOrEdit: true
+        },
+        methods:
+        {
+            getAllProduct: function () {
+                var self = this;
+                axios.get("https://localhost:7267/api/Product/getAllProduct")
+                    .then(res => {
+                        var xhr = res.request;
+                        if (res.status == 200 && xhr.readyState == 4) {
+                            self.productList = res.data;
+                        }
+                    })
+                    .catch(err => { console.log(err); })
+            },
+            addNewProduct: function () {
+                var self = this;
+                if (this.productName === "" || this.productPrice === "") { alert("商品或是價格未填寫") }
+                else {
+                    var data =
+                    {
+                        ProductName: this.productName,
+                        ProductPrice: this.productPrice,
+                        ProductDetail: this.productDetail
+                    };
+                    console.log(data);
+                    fetch("https://localhost:7267/api/Product/addNewProduct", {
+                        method: 'POST',
+                        headers:
+                        {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (res) {
+                            app.$nextTick(self.getAllProduct());
+                            console.log("result =", res.msg);
+                            self.productName = "";
+                            self.productPrice = "";
+                            self.productDetail = "";
+                        }
+                        )
+                        .catch(function (res) {
+                            console.log("result =", res.msg);
+                        });
+
+                }
+            },
+            addButton: function () {
+                this.addOrEdit = true;
+                self.productName = "";
+                self.productPrice = "";
+                self.productDetail = "";
+            },
+            editButton:function(e)
+            {
+                console.log(e);
+                this.addOrEdit = false;
+                self.productName = e.target.ProductName;
+                self.productPrice = e.target.productPrice;
+                self.productDetail = e.target.productDetail;
+            }
+
+        },
+        mounted: function () {
+            this.getAllProduct();
+        }
+    });
+    app.$mount('#vbody');
+</script>
+
+</html>
