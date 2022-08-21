@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Yungching.Interface;
 using Yungching.Models;
+using Yungching.Service;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(p => p.AddPolicy("Web", build => { 
 build.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
@@ -12,7 +15,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<YungchingDemoContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("Product")));
 builder.Services.AddAutoMapper(typeof(Program));
-
+builder.Services.AddScoped<IProductService, ProductService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
