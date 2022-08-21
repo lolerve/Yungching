@@ -31,19 +31,19 @@
                 <span class="fs-5 fw-semibold">產品列表</span>
             </a>
             <div class="list-group list-group-flush border-bottom scrollarea">
-                <a href="#" class="list-group-item list-group-item-action py-3 lh-tight" v-on:click="addButton">
+                <a class="list-group-item list-group-item-action py-3 lh-tight" v-on:click="add">
                     <div class="d-flex w-100 align-items-center justify-content-between">
                         <strong class="mb-1">新增產品</strong>
                         <small class="text-muted">點擊新增</small>
                     </div>
                     <div class="col-10 mb-1 small"></div>
                 </a>
-                <a href="#" class="list-group-item list-group-item-action py-3 lh-tight" v-for="item in productList" v-on:click="editButton">
-                    <div class="d-flex w-100 align-items-center justify-content-between">
-                        <strong class="mb-1">{{item.productName}}</strong>
-                        <small class="text-muted">NT {{item.productPrice}}$</small>
+                <a type="button" class="list-group-item list-group-item-action py-3 lh-tight" v-for="item in productList" v-on:click="edit" :data-bit="item.productId">
+                    <div class="d-flex w-100 align-items-center justify-content-between" :data-bit="item.productId">
+                        <strong class="mb-1" :id="'productName'+item.productId" :data-bit="item.productId">{{item.productName}}</strong>
+                        <small class="text-muted" :id="'productPrice'+item.productId" :data-bit="item.productId">NT {{item.productPrice}}$</small>
                     </div>
-                    <div class="col-10 mb-1 small">{{item.productDetail}}</div>
+                    <div class="col-10 mb-1 small" :id="'productDetail'+item.productId" :data-bit="item.productId">{{item.productDetail}}</div>
                 </a>
             </div>
         </div>
@@ -60,11 +60,14 @@
                 <label for="productDetail" class="form-label">商品詳情</label>
                 <input type="text" class="form-control" v-model="productDetail">
             </div>
-            <div class="offset-2 col-2">
+            <div class="col-2">
                 <label for="AddButton" class="form-label"></label>
                 <input type="button" class="form-control" id="AddButton" value="新增" v-on:click="addNewProduct"
-                    v-if="addOrEdit">
-                <input type="button" class="form-control" id="AddButton" value="修改" v-on:click="addNewProduct" v-else>
+                    v-if="addOrEdit" >
+                    <div v-else><input type="button" class="form-control" id="EditButton" value="修改" v-on:click="editProduct">
+                        <label for="DeleteButton" class="form-label"></label>
+                        <input type="button" class="form-control" id="DeleteButton" value="刪除" v-on:click="deleteProduct" ></div>
+                
             </div>
         </div>
     </div>
@@ -78,6 +81,7 @@
             productName: "",
             productPrice: "",
             productDetail: "",
+            productId:0,
             addOrEdit: true
         },
         methods:
@@ -103,46 +107,110 @@
                         ProductPrice: this.productPrice,
                         ProductDetail: this.productDetail
                     };
-                    console.log(data);
-                    fetch("https://localhost:7267/api/Product/addNewProduct", {
-                        method: 'POST',
-                        headers:
+                    
+                    axios(
                         {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    })
-                        .then(function (response) {
-                            return response.json();
-                        })
-                        .then(function (res) {
+                            method: 'POST',
+                            url: "https://localhost:7267/api/Product/addNewProduct",
+                            headers: { "Content-Type": "application/json" },
+                            data: data
+                        }
+                    ).then(
+                        (res) => {
+                            alert(res.data.msg);
                             app.$nextTick(self.getAllProduct());
-                            console.log("result =", res.msg);
                             self.productName = "";
                             self.productPrice = "";
                             self.productDetail = "";
                         }
-                        )
-                        .catch(function (res) {
-                            console.log("result =", res.msg);
-                        });
+                    ).catch(
+                        (res) => {
+                            console.log(res);
 
+                        }
+                    );
                 }
             },
-            addButton: function () {
-                this.addOrEdit = true;
-                self.productName = "";
-                self.productPrice = "";
-                self.productDetail = "";
-            },
-            editButton:function(e)
+            editProduct:function()
             {
-                console.log(e);
+                var self = this;
+                if (this.productName === "" || this.productPrice === "") { alert("商品或是價格未填寫") }
+                else {
+                var data =
+                    {
+                        ProductId:parseInt(this.productId, 10),
+                        ProductName: this.productName,
+                        ProductPrice: this.productPrice,
+                        ProductDetail: this.productDetail
+                    };
+                    axios(
+                        {
+                            method: 'PUT',
+                            url: "https://localhost:7267/api/Product/editProduct",
+                            headers: { "Content-Type": "application/json" },
+                            data: data
+                        }
+                    ).then(
+                        (res) => {
+                            alert(res.data.msg);
+                            app.$nextTick(self.getAllProduct());
+                        }
+                    ).catch(
+                        (res) => {
+                            console.log(res);
+
+                        }
+                    );
+                }
+            },
+            deleteProduct:function()
+            {
+                if(confirm("確定要刪除?"))
+                {
+                    var self = this;
+                var data =
+                    {
+                        ProductId:parseInt(this.productId, 10)
+                    };
+                    axios(
+                        {
+                            method: 'DELETE',
+                            url: "https://localhost:7267/api/Product/deleteProduct",
+                            headers: { "Content-Type": "application/json" },
+                            data: data
+                        }
+                    ).then(
+                        (res) => {
+                            alert(res.data.msg);
+                            app.$nextTick(self.getAllProduct());
+                            app.$nextTick(self.add());
+                        }
+                    ).catch(
+                        (res) => {
+                            console.log(res);
+                        }
+                    );
+                }
+                
+            },
+            add: function () {
+                this.addOrEdit = true;
+                this.productName = "";
+                this.productPrice = "";
+                this.productDetail = "";
+                window.scrollTo(0,0);
+            },
+            edit:function(e)
+            {
+                var productId = event.target.dataset.bit;
+                console.log(productId);
                 this.addOrEdit = false;
-                self.productName = e.target.ProductName;
-                self.productPrice = e.target.productPrice;
-                self.productDetail = e.target.productDetail;
+                var product = this.productList.filter(x=>x.productId==productId)[0];
+                this.productName = product.productName;
+                this.productPrice = product.productPrice;
+                this.productDetail = product.productDetail;
+                this.productId = productId;
+                window.scrollTo(0,0);
             }
 
         },

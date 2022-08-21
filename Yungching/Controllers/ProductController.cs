@@ -72,12 +72,12 @@ namespace Yungching.Controllers
 
         [Route("api/Product/deleteProduct")]
         [HttpDelete]
-        public Status deleteProduct(int productId) 
+        public Status deleteProduct(DeleteProduct deleteproduct) 
         {
             Status status = new Status();
             try
             {
-                var product = _dbcontext.Products.FirstOrDefault(x => x.ProductId == productId);
+                var product = _dbcontext.Products.FirstOrDefault(x => x.ProductId == deleteproduct.ProductId);
                 _dbcontext.Remove(product);
                 _dbcontext.SaveChanges();
                 status.Msg = "刪除成功";
